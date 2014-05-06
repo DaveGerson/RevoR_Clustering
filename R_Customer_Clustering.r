@@ -71,4 +71,4 @@ customerClusters_xdf<-rxImport(customerClusters)
 rxDataStep(customerClusters,outFile=cluster_outfile,overwrite=TRUE,varsToDrop = c("Trips_Scaled","Average_Spend_Scaled","Average_ItemCost_Scaled"))
 
 #Visualization of Cluster Data at Tableau Public
-#http://public.tableausoftware.com/views/ClusterDiagnosticForKaggleCustomerChallenge/ClusterDash?amp;:embed=y&:display_count=no
+#http://public.tableausoftware.com/profile/ucgerson#!/vizhome/ClusterDiagnosticForKaggleCustomerValueChalleng/ClusterDash
