@@ -12,12 +12,13 @@ names(customerInfo_xdf)<-c("ID","Stores_Shopped","Trips","SalesDollars","ItemsPu
 customerInfo_xdf<-rxDataStepXdf(customerInfo_xdf,removeMissings = TRUE)
 #customerClusterInfo_xdf<-rxDataStepXdf(customerInfo_xdf,removeMissings = TRUE,varsToKeep = c("ID","Trips","Average_Spend","Average_ItemCost") )
 
-##Scals data so the clustering doesn't favor the "larger" numerical datapoints.
 scaled_customerClusterInfo<-rxDataStepXdf(customerInfo_xdf,removeMissings = TRUE,varsToKeep = c("Trips","Average_Spend","Average_ItemCost") )
-scaled_customerClusterInfo<-data.frame(scale(scaled_customerClusterInfo))
-#Winsorizing data to remove "heavy outliers" from analysis
 library("psych", lib.loc="C:/Revolution/R-Enterprise-7.0/R-3.0.2/library")
+#Winsorizing data to remove "heavy outliers" from analysis
 scaled_customerClusterInfo<-data.frame(winsor(scaled_customerClusterInfo,trim=.05))
+##Scale data so the clustering doesn't favor the "larger" numerical datapoints.
+scaled_customerClusterInfo<-data.frame(scale(scaled_customerClusterInfo))
+
 names(scaled_customerClusterInfo)<-c("Trips_Scaled","Average_Spend_Scaled","Average_ItemCost_Scaled")
 customerInfo_xdf<-rxImport(scaled_dataloc)
 
@@ -58,21 +59,16 @@ names(customerClusters)[10+k]<-paste("Cluster",k,sep="")
 }
 
 scoringList<-list(CH = chnumerator/chdenominator, wss = cluster_WSS_diag, tss = totss  )
-	#Unifying scale of data and implementing clusters and plotting with GG Plot
-	library("ggplot2", lib.loc="C:/Revolution/R-Enterprise-7.0/R-3.0.2/library")
-	library("reshape2", lib.loc="C:/Revolution/R-Enterprise-7.0/R-3.0.2/library")
-scaled_scoringList<-data.frame(k=1:10,ch=scale(scoringList$CH),wss=scale(scoringList$wss))
-scaled_scoringList<-melt(scaled_scoringList, id.vars=c("k"), variable.name="measure",value.name="score")
-ggplot(scaled_scoringList, aes(x=k, y = score , color = measure)) + geom_point(aes(shape=measure)) + geom_line(aes(linetype=measure)) + scale_x_continuous (breaks=1:7,labels=1:7)
 
+#Plotting Calinski Harabasz Index
 plot(scoringList$wss,type="l",col="blue")
 par(new=TRUE)
 plot(scoringList$CH,type="l",col="red")
 
-#The "Elbow" of my data shows a peak at 3 so I am choosing that as my number of clusters
+#The "Elbow" of my data shows a peak at 4 so I am choosing that as my default number of clusters
 cluster_outfile<-"E:/Revo_R_Data/Customer_Info/customer_clusters.csv"
 customerClusters_xdf<-rxImport(customerClusters)
-customerClusters<-rxDataStep(customerClusters,outFile=cluster_outfile,,overwrite=TRUE,varsToDrop = c("Trips_Scaled","Average_Spend_Scaled","Average_ItemCost_Scaled"))
+rxDataStep(customerClusters,outFile=cluster_outfile,overwrite=TRUE,varsToDrop = c("Trips_Scaled","Average_Spend_Scaled","Average_ItemCost_Scaled"))
 
 #Visualization of Cluster Data at Tableau Public
 #http://public.tableausoftware.com/views/ClusterDiagnosticForKaggleCustomerChallenge/ClusterDash?amp;:embed=y&:display_count=no
